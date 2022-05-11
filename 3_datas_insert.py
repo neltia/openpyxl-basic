@@ -1,8 +1,8 @@
 # 3_datas_insert.py
 from openpyxl import Workbook
-wb = Workbook()
 
-ws = wb.active # 기본 시트 가져오기
+wb = Workbook()
+ws = wb.active
 
 # 첫째행 타이틀 적기 예제
 # 제목 적기
