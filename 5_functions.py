@@ -37,4 +37,4 @@ for row in range(1, len(sub)+1):
         ws[start_row+row][column].value = f"={func}({formula_range})"
 
 # 결과물 저장
-wb.save("wb_mutlple_func.xlsx")
+wb.save("wb_multiple_func.xlsx")
