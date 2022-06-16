@@ -1,6 +1,6 @@
 # 8_cell_font.py
 # - Post 6. 정렬과 글꼴
-# - URL:
+# - URL: https://blog.naver.com/dsz08082/222737385550
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
