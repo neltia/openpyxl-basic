@@ -7,7 +7,7 @@ from openpyxl.styles import Border, Side
 from copy import copy
 
 # 5_functions.py 파일의 결과 파일 경로 입력 후 파일 load
-path = "./preview_resultfile"
+path = "../Post04"
 wb = load_workbook(f'{path}/wb_multiple_func.xlsx')
 ws = wb['Sheet']
 

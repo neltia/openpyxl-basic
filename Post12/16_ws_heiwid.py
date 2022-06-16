@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 
 # 12_cell_border.py 파일의 결과 파일 경로 입력 후 파일 load
-path = "./preview_resultfile"
+path = "../Post10"
 wb = load_workbook(f'{path}/wb_border.xlsx')
 ws = wb['Sheet']
 
