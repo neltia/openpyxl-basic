@@ -10,6 +10,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.styles import PatternFill, Color
 from openpyxl.styles import Border, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.drawing.image import Image
 from copy import copy
 
 # 새 워크북 생성 및 시트 이름 변경
@@ -19,6 +21,7 @@ ws.title = "제1작업"
 
 # A열 너비 조정
 ws.column_dimensions["A"].width  = 1
+
 # 셀 기본 스타일 지정 함수
 def cell_style(workseet, cell):
     cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
@@ -53,29 +56,27 @@ raw_datas = {
 }
 # - 셀에 기본 데이터 입력
 key_list = list(raw_datas.keys())
-for row in range(5, 13):
+for row in range(5, 15):
     idx = 0
-    for col in range(2, 9):
-        key = key_list[idx]
+    for col in range(2, 11):
+        try:
+            key = key_list[idx]
+            value = raw_datas[key][row-5]
+        except IndexError:
+            value = None
         cell = ws.cell(row=row, column=col)
-        cell.value = raw_datas[key][row-5]
+        if value:
+            cell.value = value
         if idx <= 3:
             cell.alignment = Alignment(horizontal='center', vertical='center')
         cell.font = Font(name='굴림', size=11)
         idx += 1
 
 # 셀 병합
-# - 셀 병합 수행
-ws.merge_cells("B13:D13")
-ws.merge_cells("B14:D14")
-ws.merge_cells("F13:F14")
-ws.merge_cells("G13:I13")
 # - 데이터 입력 및 처리
 ws["B13"] = "최저 급여(단위:원)"
 ws["B14"] = "제무관리부 급여(단위: 원) 평균"
 ws["G13"] = "발령구분이 복직인 사원수"
-cell_style(ws, ws["B13"])
-cell_style(ws, ws["B14"])
 cell_style(ws, ws["G13"])
 # - 기타 데이터 입력
 g14 = ws["G14"]
@@ -161,8 +162,39 @@ for col in cols:
 f13 = ws["F13"]
 f13.border = Border(top=bd_thick, bottom=bd_thick, left=bd_thin, right=bd_thin, diagonalUp=True, diagonalDown=True, diagonal=Side(border_style="thin"))
 
+# 기타 셀 배경색 설정
+# - 셀 병합 수행
+ws.merge_cells("B13:D13")
+ws.merge_cells("B14:D14")
+ws.merge_cells("F13:F14")
+ws.merge_cells("G13:I13")
 g14.fill = PatternFill(fill_type='solid', fgColor=Color('FFC000'))
 i14.fill = PatternFill(fill_type='solid', fgColor=Color('FFC000'))
+
+# 셀 서식 적용
+# - 숫자 뒤에 '년' 표시
+for rng in ws["F5:F12"]:
+    for cell in  rng:
+        cell.number_format = '#,##0"년"'
+# - 세 자리 단위 콤마
+for rng in ws["H5:H12"]:
+    for cell in  rng:
+        cell.number_format = '0,000'
+
+# 높이/너비 설정
+# - 행 높이 설정
+for row in range(1, 4):
+    ws.row_dimensions[row].height = 22.5
+# - 열 너비 설정
+width_list = [10.63, 9.63, 13.13, 11.88, 11.88, 11.88, 12.63, 10.25, 11.38]
+idx = 0
+for col in range(2, 11):
+    ws.column_dimensions[get_column_letter(col)].width = width_list[idx]
+    idx += 1
+
+# 이미지 삽입
+img = Image('결재.png')
+ws.add_image(img, 'H1')
 
 # 완료 데이터 저장
 wb.save("result-2201010B-openpyxl_part1.xlsx")
