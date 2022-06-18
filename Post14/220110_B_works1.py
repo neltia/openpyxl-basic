@@ -12,6 +12,8 @@ from openpyxl.styles import PatternFill, Color
 from openpyxl.styles import Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.drawing.image import Image
+from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.worksheet.datavalidation import DataValidation
 from copy import copy
 
 # 새 워크북 생성 및 시트 이름 변경
@@ -43,7 +45,7 @@ names = ["김지은", "노승일", "김선정", "배현진", "박성호", "서�
 personnel_transfer = ["재무관리부", "배송부", "배송부", "재무관리부", "배송부", "식료사업부", "식료사업부", "식료사업부"]
 division = ["복직", "이동", "채용", "이동", "이동", "이동", "채용", "채용"]
 term = [4, 11, 1, 12, 5, 14, 3, 1]
-year = [1993, 1979, 1991, 1978, 1980, 1972, 1993, 1985]
+year = [1983, 1979, 1991, 1978, 1980, 1972, 1993, 1985]
 pay = [2257000, 4926000, 1886000, 5236000, 2386000, 4436000, 2350000, 1786000]
 raw_datas = {
     "사원코드": employee_code,
@@ -83,13 +85,12 @@ g14 = ws["G14"]
 i14 = ws["I14"]
 g14.value = "사원코드"
 i14.value = "근속기간"
-cell_style(ws, g14)
 cell_style(ws, i14)
 
 # 표 테두리 설정
 # - 선 정의
 bd_thin = Side(border_style='thin')
-bd_thick = Side(border_style='thick')
+bd_thick = Side(border_style='medium')
 THIN_BORDER = Border(bd_thin, bd_thin, bd_thin, bd_thin)
 THICK_BORDER = Border(
     top=bd_thick, bottom=bd_thick, left=bd_thick, right=bd_thick
@@ -118,7 +119,6 @@ borderBottomLeft = Border(
 borderBottomRight = Border(
     top=bd_thin, bottom=bd_thick, left=bd_thin, right=bd_thick
 )
-borderSide = Side(border_style='thick')
 # - 선 지정 범위 정의
 rowTop = 4
 rowBot = 14
@@ -169,6 +169,7 @@ ws.merge_cells("B14:D14")
 ws.merge_cells("F13:F14")
 ws.merge_cells("G13:I13")
 g14.fill = PatternFill(fill_type='solid', fgColor=Color('FFC000'))
+cell_style(ws, g14)
 i14.fill = PatternFill(fill_type='solid', fgColor=Color('FFC000'))
 
 # 셀 서식 적용
@@ -186,11 +187,62 @@ for rng in ws["H5:H12"]:
 for row in range(1, 4):
     ws.row_dimensions[row].height = 22.5
 # - 열 너비 설정
-width_list = [10.63, 9.63, 13.13, 11.88, 11.88, 11.88, 12.63, 10.25, 11.38]
+width_list = [10.63, 9.63, 13.13, 11.88, 11.88, 11.88, 13, 11, 12]
 idx = 0
 for col in range(2, 11):
     ws.column_dimensions[get_column_letter(col)].width = width_list[idx]
     idx += 1
+
+# 「H5:H12」영역에 대해 급여로 이름 정의
+# Refer.
+# -- https://openpyxl.readthedocs.io/en/stable/defined_names.html
+# -- https://stackoverflow.com/questions/60047850/python-openpyxl-package-defined-names-does-not-recognize-named-ranges
+# -- https://pythoninoffice.com/how-to-work-with-excel-named-range-in-python/
+new_range = DefinedName('급여', attr_text='제1작업!$H$5:$H$12')
+wb.defined_names.append(new_range)
+
+# 데이터 유효성 검사
+# - 유효성 검사를 이용하여 H14셀에 사원코드 영역(B5:B12)
+dv = DataValidation(type="list", formula1="=$B$5:$B$12") # allow_blank=False
+ws.add_data_validation(dv)
+dv.add("H14")
+ws["H14"].value = ws["B5"].value
+ws["H14"].alignment = Alignment(horizontal='center')
+
+# 함수 문제 풀이
+# - (1) 출생년 순위: 출생년 컬럼 기준 오름차순 순위 + '위'
+func = "RANK"
+for row in range(5, 13):
+    formula_range = f"G{row}, $G$5:$G$12, 1"
+    cell = ws["I"][row-1]
+    cell.value = f'={func}({formula_range})&"위"'
+    cell.alignment = Alignment(horizontal='right')
+# - (2) 비고: 사원코드 기준 앞 두 글자가 PE면 정규직 그 외에는 계약직
+for row in range(5, 13):
+    formula_range = f"G{row}, $G$5:$G$12, 1"
+    cell = ws["J"][row-1]
+    cell.value = f'=IF(LEFT(B{row},2)="PE","정규직", "계약직")'
+    cell.alignment = Alignment(horizontal='right')
+# - (3) 최저 급여 (단위: 원): 정의된 이름(급여) 이용
+cell = ws["E13"]
+cell.value = "=MIN(급여)"
+cell.alignment = Alignment(horizontal='right')
+cell.number_format = '0,000'
+# - (4) 재무관리부 급여(단위:원) 평균: 조건은 입력 데이터를 이용, 반올림하여 만 단위까지
+cell = ws["E14"]
+cell.value = "=ROUND(DAVERAGE(B4:H12,7,D4:D5),-4)"
+cell.alignment = Alignment(horizontal='right')
+cell.number_format = '0,000'
+# - (5) 발령구분이 복직인 사원수: 조건은 입력 데이터 이용
+cell = ws["J13"]
+cell.value = "=DCOUNTA(B4:H12,4,E4:E5)"
+cell.alignment = Alignment(horizontal='right')
+# - (6) 근속기간: 「근속기간」셀에서 선택한 사원코드에 대한 근속기간
+cell = ws["J14"]
+cell.value = "=VLOOKUP(H14,B5:H12,5,0)"
+cell.alignment = Alignment(horizontal='right')
+
+# 조건부 서식
 
 # 이미지 삽입
 img = Image('결재.png')
