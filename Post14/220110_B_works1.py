@@ -14,6 +14,8 @@ from openpyxl.utils import get_column_letter
 from openpyxl.drawing.image import Image
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.formatting import Rule
+from openpyxl.styles.differential import DifferentialStyle
 from copy import copy
 
 # 새 워크북 생성 및 시트 이름 변경
@@ -222,7 +224,7 @@ for row in range(5, 13):
     formula_range = f"G{row}, $G$5:$G$12, 1"
     cell = ws["J"][row-1]
     cell.value = f'=IF(LEFT(B{row},2)="PE","정규직", "계약직")'
-    cell.alignment = Alignment(horizontal='right')
+    cell.alignment = Alignment(horizontal='center')
 # - (3) 최저 급여 (단위: 원): 정의된 이름(급여) 이용
 cell = ws["E13"]
 cell.value = "=MIN(급여)"
@@ -242,7 +244,24 @@ cell = ws["J14"]
 cell.value = "=VLOOKUP(H14,B5:H12,5,0)"
 cell.alignment = Alignment(horizontal='right')
 
-# 조건부 서식
+# 조건부 서식: 수식을 이용하여 급여 단위(단위:원)가 4,000,000 이상인 행 전체에 '글꼴: 파랑, 굵게'
+# - 일반 조건문을 사용한 방법
+conditional_font = Font(color='0070C0', bold=True, name='굴림', size=11)
+'''
+for row in ws["H5:H12"]:
+    stat = False
+    for cell in row:
+        if isinstance(cell.value, int) and cell.value >= 4000000:
+            stat = True
+        if stat:
+            for cell in ws[cell.row]:
+                cell.font = conditional_font
+'''
+# - 조건부 서식에서 새 규칙을 추가해 사용하는 수식을 이용한 방법
+# - refer. https://openpyxl.readthedocs.io/en/stable/formatting.html
+dxf = DifferentialStyle(font=conditional_font)
+rule = Rule(type='expression', formula=['=$H5>=4000000'], dxf=dxf)
+ws.conditional_formatting.add('$B$5:$J$12', rule)
 
 # 이미지 삽입
 img = Image('결재.png')
