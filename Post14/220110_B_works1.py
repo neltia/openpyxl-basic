@@ -265,6 +265,11 @@ ws.conditional_formatting.add('$B$5:$J$12', rule)
 
 # 제목 도형 삽입
 # - openpyxl에서 도형 그리기 기능은 제공하지 않는 것으로 확인
+# - refer. 도형 미지원 참고 자료
+# -- https://openpyxl.readthedocs.io/en/2.4/api/openpyxl.drawing.shapes.html
+# "You are not reading the most recent version of this documentation. 2.5.14 is the latest version available."
+# -- https://stackoverflow.com/questions/48714562/python-openpyxl-how-to-insert-a-shape-for-text
+# -- https://foss.heptapod.net/openpyxl/openpyxl/-/issues/1488
 
 # 이미지 삽입
 img = Image('결재.png')
