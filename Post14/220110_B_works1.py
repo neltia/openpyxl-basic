@@ -263,6 +263,9 @@ dxf = DifferentialStyle(font=conditional_font)
 rule = Rule(type='expression', formula=['=$H5>=4000000'], dxf=dxf)
 ws.conditional_formatting.add('$B$5:$J$12', rule)
 
+# 제목 도형 삽입
+# - openpyxl에서 도형 그리기 기능은 제공하지 않는 것으로 확인
+
 # 이미지 삽입
 img = Image('결재.png')
 ws.add_image(img, 'H1')
