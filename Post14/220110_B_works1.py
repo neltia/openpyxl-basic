@@ -24,7 +24,7 @@ ws = wb.active
 ws.title = "제1작업"
 
 # A열 너비 조정
-ws.column_dimensions["A"].width  = 1
+ws.column_dimensions["A"].width = 1
 
 # 셀 기본 스타일 지정 함수
 def cell_style(workseet, cell):
