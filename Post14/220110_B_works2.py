@@ -9,7 +9,10 @@
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.styles import Border, Side
+from openpyxl.utils.dataframe import dataframe_to_rows
+import pandas as pd
 from copy import copy
+import time
 
 # 제1작업 시트 불러오기
 wb = load_workbook('result-2201010B-openpyxl_part1.xlsx')
@@ -20,10 +23,12 @@ ws2 = wb.create_sheet("제2작업")
 ws2.column_dimensions["A"].width = 1
 
 # 셀 기본 스타일 지정 함수
-def cell_style(workseet, cell):
-    cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+def cell_style(workseet, cell, align=True, thin=True):
     cell.font = Font(name='굴림', size=11)
-    cell.border = THIN_BORDER
+    if align:
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    if thin:
+        cell.border = THIN_BORDER
     return workseet
 
 # 기존 데이터를 다른 시트로 복사
@@ -84,7 +89,35 @@ ws_test.title = "자동 필터 테스트"
 ws_test.auto_filter.ref = "B2:H10"
 ws_test.auto_filter.add_filter_column(0, sub)
 
-# 대안: 파이썬 자체 기능 사용
+# 대안: 파이썬 판다스 필터 사용
+# - filter 조건
+# -> ws2[B14], ws2[B15]
+cell = ws2["B14"]
+cell.value = "발령부서"
+cell._style = copy(ws2["D2"]._style)
+cell = ws2["B15"]
+cell.value = "배송부"
+cell.alignment = Alignment(horizontal='left')
+cell_style(ws2, cell, False, False)
+# -> ws2[C14], ws2[C15]
+cell = ws2["C14"]
+cell.value = "근속기간"
+cell._style = copy(ws2["F2"]._style)
+cell = ws2["C16"]
+cell.value = "<=2"
+cell.alignment = Alignment(horizontal='left')
+cell_style(ws2, cell, False, False)
+
+# - 필터 데이터 적용
+df = pd.DataFrame(ws2.values)
+df = df.drop(0, axis=1)
+df.columns = df.iloc[1, :]
+df = df[2:-1]
+mask1 = (df.발령부서 == "배송부") | (df.근속기간 <= 2)
+df_filter = df.loc[mask1,:]
+
+for r in dataframe_to_rows(df_filter, index=True, header=True):
+   ws2.append(r)
 
 # 완료 데이터 저장
 wb.save("result-2201010B-openpyxl_part2.xlsx")
