@@ -1,5 +1,5 @@
 """
-220110_B_works1.py
+220110_B_works2.py
 - Post 14. 응용 사례 - ITQ 엑셀 문제 풀이
 [22년 01월 10일 기출문제 복원본 풀이] 중 제2작업
 - 문제 출처 : https://www.comcbt.com/xe/itqe/5563038
@@ -10,9 +10,9 @@ from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.styles import Border, Side
 from openpyxl.utils.dataframe import dataframe_to_rows
+import numpy as np
 import pandas as pd
 from copy import copy
-import time
 
 # 제1작업 시트 불러오기
 wb = load_workbook('result-2201010B-openpyxl_part1.xlsx')
@@ -107,7 +107,6 @@ cell = ws2["C16"]
 cell.value = "<=2"
 cell.alignment = Alignment(horizontal='left')
 cell_style(ws2, cell, False, False)
-
 # - 필터 데이터 적용
 df = pd.DataFrame(ws2.values)
 df = df.drop(0, axis=1)
@@ -115,9 +114,20 @@ df.columns = df.iloc[1, :]
 df = df[2:-1]
 mask1 = (df.발령부서 == "배송부") | (df.근속기간 <= 2)
 df_filter = df.loc[mask1,:]
+df_filter = df_filter[["이름", "발령구분", "근속기간", "급여\n(단위:원)"]]
+for idx, r in enumerate(dataframe_to_rows(df_filter, index=True, header=True)):
+    print(r)
+    # 빈 행 추가
+    if idx == 0:
+        ws2.append([None])
+        ws2.append(r)
+    elif r == [None]:
+        continue
+    else:
+        ws2.append(r)
 
-for r in dataframe_to_rows(df_filter, index=True, header=True):
-   ws2.append(r)
+# 대안: 파이썬 일반 조건문 사용
+# -
 
 # 완료 데이터 저장
 wb.save("result-2201010B-openpyxl_part2.xlsx")
