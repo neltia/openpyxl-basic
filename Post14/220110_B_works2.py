@@ -83,10 +83,12 @@ ws2["H3"].value = 3200000 * 8 - nums
 # - 복사 위치: B18 셀부터 나타나도록
 # *** 고급필터 기능 자체는 openpyxl의 미지원 기능으로 판단 ***
 # 자동필터 기능 지원 테스트
-sub = ['사원코드', '이름', '발령부서', '발령구분', '근속기간', '출생년', '급여\n(단위:원)']
+# sub = ['사원코드', '이름', '발령부서', '발령구분', '근속기간', '출생년', '급여\n(단위:원)']
+sub = ['발령부서']
 ws_test = wb.copy_worksheet(wb["제2작업"])
 ws_test.title = "자동 필터 테스트"
-ws_test.auto_filter.ref = "B2:H10"
+# ws_test.auto_filter.ref = "B2:H10"
+ws_test.auto_filter.ref = "E2:E10"
 ws_test.auto_filter.add_filter_column(0, sub)
 
 # 대안: 파이썬 판다스 필터 사용
@@ -116,7 +118,6 @@ mask1 = (df.발령부서 == "배송부") | (df.근속기간 <= 2)
 df_filter = df.loc[mask1,:]
 df_filter = df_filter[["이름", "발령구분", "근속기간", "급여\n(단위:원)"]]
 for idx, r in enumerate(dataframe_to_rows(df_filter, index=True, header=True)):
-    print(r)
     # 빈 행 추가
     if idx == 0:
         ws2.append([None])
@@ -125,9 +126,6 @@ for idx, r in enumerate(dataframe_to_rows(df_filter, index=True, header=True)):
         continue
     else:
         ws2.append(r)
-
-# 대안: 파이썬 일반 조건문 사용
-# -
 
 # 완료 데이터 저장
 wb.save("result-2201010B-openpyxl_part2.xlsx")
