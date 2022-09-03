@@ -33,9 +33,8 @@ v1 = Series(refer_name_string)
 data_money_string = Series(refer_money_string, title="급여(단위: 원)")
 data_money_position = (Series(refer_money_position),)
 
-chart_bar.series = (v1, data_money_string)
+chart_bar.series = (data_money_string,)
 chart_bar.set_categories(refer_name_string)
-chart_bar.title = '배송부 및 식료사업부 급여 현황'
 chart_bar.y_axis.number_format = '#,##'
 
 # line cart
@@ -43,7 +42,8 @@ chart_line = LineChart()
 refer3 = Reference(ws4, range_string=refer_time)
 
 data2 = Series(refer3, title="근속기간")
-chart_line.series = (v1, data2)
+chart_line.series = (data2,)
+chart_line.set_categories(refer_name_string)
 chart_line.y_axis.axId = 200
 chart_line.y_axis.number_format = '#,##0"년"'
 
@@ -56,12 +56,19 @@ cp = CharacterProperties(latin=font, sz=size, b=False)
 pp = ParagraphProperties(defRPr=cp)
 rtp = RichText(p=[Paragraph(pPr=pp, endParaRPr=cp)])
 chart_bar.y_axis.txPr = rtp        # Works!
-chart_line.y_axis.txPr = rtp        # Works!
+chart_line.y_axis.txPr = rtp       # Works!
+
+# Marker line chart
+s1 = chart_line.series[0]
+s1.marker.symbol = "diamond"
 
 # chart add
 chart_bar.y_axis.majorGridlines = None
+
+chart_line.title = '배송부 및 식료사업부 급여 현황'
+chart_bar.style = 10
 chart_bar.y_axis.crosses = "max"
-chart_bar += chart_line
+chart_line += chart_bar
 
 # legend positoin
 '''
@@ -77,7 +84,7 @@ chart_bar.legend.layout = Layout(
 )
 '''
 
-ws4.add_chart(chart_bar)
+ws4.add_chart(chart_line)
 
 # 완료 데이터 저장
 wb.save("result-2201010B-openpyxl_part4.xlsx")
