@@ -2,6 +2,8 @@
 import openpyxl
 from openpyxl import load_workbook
 from openpyxl.chart import LineChart, BarChart, Reference, Series
+from openpyxl.chart.text import RichText
+from openpyxl.drawing.text import Paragraph, ParagraphProperties, CharacterProperties, Font
 from openpyxl.chart.layout import Layout, ManualLayout
 
 # 제1작업 시트 불러오기
@@ -21,13 +23,20 @@ chart_bar = BarChart()
 refer_name_string = Reference(ws4, range_string=refer_names)
 refer_name_position = Reference(ws4, min_col=3, min_row=5, max_row=12)
 refer_money_string = Reference(ws4, range_string=refer_money)
+refer_money_position = Reference(ws4,
+    min_col=6,
+    min_row=5,
+    max_row=12
+)
 
 v1 = Series(refer_name_string)
-data1 = Series(refer_money_string, title="급여(단위: 원)")
+data_money_string = Series(refer_money_string, title="급여(단위: 원)")
+data_money_position = (Series(refer_money_position),)
 
-chart_bar.series = (v1, data1)
+chart_bar.series = (v1, data_money_string)
 chart_bar.set_categories(refer_name_string)
 chart_bar.title = '배송부 및 식료사업부 급여 현황'
+chart_bar.y_axis.number_format = '#,##'
 
 # line cart
 chart_line = LineChart()
@@ -37,6 +46,17 @@ data2 = Series(refer3, title="근속기간")
 chart_line.series = (v1, data2)
 chart_line.y_axis.axId = 200
 chart_line.y_axis.number_format = '#,##0"년"'
+
+# Style chart: X and Y axes numbers
+font = Font(typeface='굴림')
+# - 11 point size
+size = 1100
+# - Not bold
+cp = CharacterProperties(latin=font, sz=size, b=False)
+pp = ParagraphProperties(defRPr=cp)
+rtp = RichText(p=[Paragraph(pPr=pp, endParaRPr=cp)])
+chart_bar.y_axis.txPr = rtp        # Works!
+chart_line.y_axis.txPr = rtp        # Works!
 
 # chart add
 chart_bar.y_axis.majorGridlines = None
