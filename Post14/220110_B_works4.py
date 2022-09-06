@@ -1,9 +1,18 @@
 # 필요 라이브러리 호출
-import openpyxl
+# - load workbook
 from openpyxl import load_workbook
+# - chart generate
 from openpyxl.chart import LineChart, BarChart, Reference, Series
+# - chart font
 from openpyxl.chart.text import RichText
 from openpyxl.drawing.text import Paragraph, ParagraphProperties, CharacterProperties, Font
+# - chart
+from openpyxl.drawing.fill import PatternFillProperties, ColorChoice
+# - chart labels
+from openpyxl.chart.label import DataLabelList
+# - chart background color setting
+from openpyxl.chart.shapes import GraphicalProperties
+# -
 from openpyxl.chart.layout import Layout, ManualLayout
 
 # 제1작업 시트 불러오기
@@ -37,6 +46,11 @@ chart_bar.series = (data_money_string,)
 chart_bar.set_categories(refer_name_string)
 chart_bar.y_axis.number_format = '#,##'
 
+# data labels
+chart_bar.dataLabels = DataLabelList()
+chart_bar.dataLabels.showVal = True
+print(dir(chart_bar))
+
 # line cart
 chart_line = LineChart()
 refer3 = Reference(ws4, range_string=refer_time)
@@ -46,8 +60,17 @@ chart_line.series = (data2,)
 chart_line.set_categories(refer_name_string)
 chart_line.y_axis.axId = 200
 chart_line.y_axis.number_format = '#,##0"년"'
+chart_line.title = '배송부 및 식료사업부 급여 현황'
 
 # Style chart: X and Y axes numbers
+def set_chart_title_size(chart, size=1100):
+    cp = CharacterProperties(latin=font, sz=size)
+    paraprops = ParagraphProperties(defRPr=cp)
+    # paraprops.defRPr = CharacterProperties(latin=font, sz=size)
+
+    for para in chart.title.tx.rich.paragraphs:
+        para.pPr=paraprops
+
 font = Font(typeface='굴림')
 # - 11 point size
 size = 1100
@@ -55,8 +78,17 @@ size = 1100
 cp = CharacterProperties(latin=font, sz=size, b=False)
 pp = ParagraphProperties(defRPr=cp)
 rtp = RichText(p=[Paragraph(pPr=pp, endParaRPr=cp)])
-chart_bar.y_axis.txPr = rtp        # Works!
-chart_line.y_axis.txPr = rtp       # Works!
+# - y축, txPr=textProperties
+chart_bar.y_axis.txPr = rtp
+chart_line.y_axis.txPr = rtp
+# - x 축
+chart_line.x_axis.txPr = rtp
+# - 범례
+chart_line.legend.txPr = rtp
+# - 제목
+set_chart_title_size(chart_line, size=2000)
+# - 데이터 라벨
+chart_bar.dataLabels.txPr = rtp
 
 # Marker line chart
 s1 = chart_line.series[0]
@@ -64,13 +96,17 @@ s1.marker.symbol = "diamond"
 
 # chart add
 chart_bar.y_axis.majorGridlines = None
-
-chart_line.title = '배송부 및 식료사업부 급여 현황'
 chart_bar.style = 10
 chart_bar.y_axis.crosses = "max"
 chart_line += chart_bar
 
+# chart background color
+props = GraphicalProperties(solidFill="f2f2f2")
+# print(help(GraphicalProperties()))
+chart_line.plot_area.graphicalProperties = props
+
 # legend positoin
+# - https://openpyxl.readthedocs.io/en/latest/charts/chart_layout.html
 '''
 chart_line.legend.position = 'tr'
 chart_bar.legend.position = "tr"
