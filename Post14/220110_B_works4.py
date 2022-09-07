@@ -41,10 +41,10 @@ refer_money_position = Reference(ws4,
 )
 
 v1 = Series(refer_name_string)
-data_money_string = Series(refer_money_string, title="급여(단위: 원)")
+data_money_string = (Series(refer_money_string, title="급여(단위: 원)"),)
 data_money_position = (Series(refer_money_position),)
 
-chart_bar.series = (data_money_string,)
+chart_bar.series = data_money_string
 chart_bar.set_categories(refer_name_string)
 chart_bar.title = '배송부 및 식료사업부 급여 현황'
 chart_bar.y_axis.number_format = '#,##'
@@ -63,11 +63,14 @@ chart_line.series = (data2,)
 chart_line.set_categories(refer_name_string)
 chart_line.y_axis.axId = 200
 chart_line.y_axis.number_format = '#,##0"년"'
+chart_line.y_axis.scaling.min = 0
+chart_line.y_axis.scaling.max = 15
+chart_line.y_axis.majorUnit = 3
 
 # Marker line chart
 s1 = chart_line.series[0]
 s1.marker.symbol = "diamond"
-# s1.marker.size = 8
+s1.marker.size = 10
 
 """ chart style addtional """
 # Style chart: X and Y axes numbers
